@@ -3,7 +3,8 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-
+import Colors from '@/constants/Colors';
+import BackButton from '@/components/buttons/back-button';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -48,7 +49,11 @@ function RootLayoutNav() {
   return (
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="(add-medication)/add-medication" options={{
+        title: 'Add Medication', headerStyle: { backgroundColor: Colors.brand.accent }, headerTintColor: 'white', headerLeft: () => { return <BackButton /> }}}/>
+                <Stack.Screen name="(add-medication)/enter-dosage" options={{
+        title: 'Enter dosage', headerStyle: { backgroundColor: Colors.brand.accent }, headerTintColor: 'white', headerLeft: () => { return <BackButton /> }}}
+        />
       </Stack>
   );
 }

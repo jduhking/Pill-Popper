@@ -2,12 +2,12 @@ import { StyleSheet, View, Text, FlatList } from 'react-native';
 import { useState } from 'react';
 import { screenHeight, screenWidth } from '@/utils/dimensions';
 import Separator from '@/components/separator';
-import ActionButton from '@/components/action-button';
+import ActionButton from '@/components/buttons/action-button';
 import { useRouter } from 'expo-router';
 
 
 export default function TabOneScreen() {
-  const [addPillModalVisible, setAddPillModalVisible] = useState<boolean>(false);
+
   const router = useRouter();
   const today: Date = new Date();
   type PillInfo = {
@@ -78,7 +78,7 @@ export default function TabOneScreen() {
       <View
       style={{ paddingHorizontal: '25%'}}>
         <ActionButton
-        onPress={() => setAddPillModalVisible(true)}>
+        onPress={() => router.push('/(add-medication)/add-medication')}>
           Add Pills
         </ActionButton>
         <Separator separation={20} />
