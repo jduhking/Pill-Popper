@@ -1,7 +1,7 @@
 import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle, TouchableOpacity, 
 ActivityIndicator } from 'react-native'
 import React, { ReactNode } from 'react'
-import Colors from '@/constants/Colors'
+import Colors from '../../constants/Colors'
 
 
 interface ActionButtonProps { 

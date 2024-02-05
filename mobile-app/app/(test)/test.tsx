@@ -481,7 +481,6 @@ const styles = StyleSheet.create({
     margin: 10,
     textAlign: 'center',
     color: Colors.white,
-    
   },
 });
 

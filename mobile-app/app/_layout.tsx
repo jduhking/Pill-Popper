@@ -3,13 +3,10 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import Colors from '@/constants/Colors';
-import BackButton from '@/components/buttons/back-button';
+import Colors from '../constants/Colors';
+import BackButton from '../components/buttons/back-button';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -47,7 +44,10 @@ function RootLayoutNav() {
 
 
   return (
-      <Stack>
+      <Stack initialRouteName='(test)/test'
+      screenOptions={{ gestureEnabled: false}}
+      >
+        <Stack.Screen name="(test)/test" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(add-medication)/add-medication" options={{
         title: 'Add Medication', headerStyle: { backgroundColor: Colors.brand.accent }, headerTintColor: 'white', headerLeft: () => { return <BackButton /> }}}/>

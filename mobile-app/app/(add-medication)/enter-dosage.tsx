@@ -1,9 +1,9 @@
 import { Image, Keyboard, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import React from 'react'
-import ActionButton from '@/components/buttons/action-button'
-import FormLabel from '@/components/forms/form-label'
-import FormInput from '@/components/forms/form-input'
-import Separator from '@/components/separator'
+import ActionButton from '../../components/buttons/action-button'
+import FormLabel from '../../components/forms/form-label'
+import FormInput from '../../components/forms/form-input'
+import Separator from '../../components/separator'
 import { useRouter } from 'expo-router'
 
 const AddMedicationScreen = () => {

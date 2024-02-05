@@ -1,7 +1,7 @@
 import { View, Text, TextInput } from 'react-native'
 import React from 'react'
-import { screenHeight } from '@/utils/dimensions'
-import Colors from '@/constants/Colors'
+import { screenHeight } from '../../utils/dimensions'
+import Colors from '../../constants/Colors'
 
 interface FormInputProps {
     placeholder?: string;
