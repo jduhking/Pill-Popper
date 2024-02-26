@@ -6,6 +6,14 @@ import Separator from '../../components/separator'
 import ActionButton from '../../components/buttons/action-button'
 import { useRouter } from 'expo-router'
 
+const DISPENSE_SERVICE_UUID: string = '6fc3d9ab-3aef-4012-9456-15b0861e1139'
+const DISPENSE_OBJECT_UUID: string = '10e6cc59-b033-48e8-bcf4-70390d05be0e'
+
+interface DispenseObject {
+  slotNumber: number;
+  dispenseAmount: number;
+}
+
 const BluetoothPairingScreen = () => {
     const { top } = useSafeAreaInsets();
     const router = useRouter();

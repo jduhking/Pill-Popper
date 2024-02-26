@@ -18,6 +18,7 @@ import {
   Pressable,
 } from 'react-native';
 
+import { Buffer } from 'buffer'
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
 const SECONDS_TO_SCAN_FOR = 3;
@@ -32,6 +33,7 @@ import BleManager, {
   BleScanMode,
   Peripheral,
 } from 'react-native-ble-manager';
+import { screenHeight } from '../../utils/dimensions';
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
@@ -49,7 +51,8 @@ const TestScreen = () => {
     new Map<Peripheral['id'], Peripheral>(),
   );
 
-  //console.debug('peripherals map updated', [...peripherals.entries()]);
+  const [connectedDispenser, setConnectedDispenser] = useState<string>();
+    //console.debug('peripherals map updated', [...peripherals.entries()]);
 
   const startScan = () => {
     if (!isScanning) {
@@ -98,7 +101,7 @@ const TestScreen = () => {
   };
 
   const handleConnectPeripheral = (event: any) => {
-    console.log(`[handleConnectPeripheral][${event.peripheral}] connected.`);
+    // console.log(`[handleConnectPeripheral][${event.peripheral}] connected.`);
   };
 
   const handleUpdateValueForCharacteristic = (
@@ -110,7 +113,7 @@ const TestScreen = () => {
   };
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-    console.debug('[handleDiscoverPeripheral] new BLE peripheral=', peripheral);
+    // console.debug('[handleDiscoverPeripheral] new BLE peripheral=', peripheral);
     if (!peripheral.name) {
       peripheral.name = 'NO NAME';
     }
@@ -123,6 +126,7 @@ const TestScreen = () => {
     if (peripheral && peripheral.connected) {
       try {
         await BleManager.disconnect(peripheral.id);
+        setConnectedDispenser(undefined)
       } catch (error) {
         console.error(
           `[togglePeripheralConnection][${peripheral.id}] error when trying to disconnect device.`,
@@ -131,6 +135,7 @@ const TestScreen = () => {
       }
     } else {
       await connectPeripheral(peripheral);
+      setConnectedDispenser(peripheral.id)
     }
   };
 
@@ -339,22 +344,96 @@ const TestScreen = () => {
     }
   };
 
+  interface DispenseObject {
+    slotNumber: number;
+    dispenseAmount: number;
+  }
+
+  const handleDispense = async (dispenseObject: DispenseObject) => {
+
+    if(!connectedDispenser){
+      console.log('No dispenser connected to')
+      
+      return
+    }
+    
+
+    const DISPENSE_SERVICE_UUID: string = '6fc3d9ab-3aef-4012-9456-15b0861e1139'
+    const DISPENSE_CHARACTERISTIC_UUID: string = '10e6cc59-b033-48e8-bcf4-70390d05be0e'
+
+
+    console.log('Dispense!')
+    // Send data
+    const data = 'Dispense that jawn!'
+    
+      // Serialize the dispenseObject into a byte array
+    const buffer = Buffer.alloc(8); // Assuming slotNumber and dispenseAmount are both 4-byte integers
+    buffer.writeInt32LE(dispenseObject.slotNumber, 0);
+    buffer.writeInt32LE(dispenseObject.dispenseAmount, 4);
+
+    const regArray: number[] = Array.from(buffer);
+    
+     BleManager.write(
+       connectedDispenser,
+       DISPENSE_SERVICE_UUID,
+       DISPENSE_CHARACTERISTIC_UUID,
+       regArray
+     )
+       .then(() => {
+         // Data sent successfully
+         console.log('Data sent successfully')
+       })
+       .catch((error) => {
+         // Handle write error
+         console.log('error sending data')
+         console.error(error)
+       });
+       
+  }
+
   const renderItem = ({item}: {item: Peripheral}) => {
     const backgroundColor = item.connected ? '#069400' : Colors.white;
+
+    if(item.name !== "mpy-uart"){
+      return null;
+    }
+    
+
     return (
+      <>
       <TouchableHighlight
         underlayColor="#0082FC"
         onPress={() => togglePeripheralConnection(item)}>
         <View style={[styles.row, {backgroundColor}]}>
           <Text style={styles.peripheralName}>
             {/* completeLocalName (item.name) & shortAdvertisingName (advertising.localName) may not always be the same */}
-            {item.name} - {item?.advertising?.localName}
+            {item.name} - {item?.advertising?.localName} 
             {item.connecting && ' - Connecting...'}
           </Text>
           <Text style={styles.rssi}>RSSI: {item.rssi}</Text>
           <Text style={styles.peripheralId}>{item.id}</Text>
         </View>
       </TouchableHighlight>
+      {
+        item.connected &&
+        (<View
+        style={{ paddingHorizontal: '5%',}}>
+          <TouchableHighlight
+          style={{ justifyContent: 'center', alignItems: 'center', flex: 1,
+        backgroundColor: 'white', height: screenHeight * 0.08, borderRadius: 60}}
+          onPress={() => { 
+            let dispense: DispenseObject = {
+              slotNumber: 4,
+              dispenseAmount: 1
+            }
+            handleDispense(dispense)
+            }}>
+            <Text>Dispense</Text>
+          </TouchableHighlight>
+          </View>
+        )
+      }
+      </>
     );
   };
 
