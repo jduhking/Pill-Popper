@@ -62,7 +62,7 @@ const BluetoothPairingScreen = () => {
       console.log('peripherals changed')
       if(!p){
         const pVal =  Array.from(peripherals.values()).filter((peripheral) => {
-          return peripheral.name === 'mpy-uart' 
+          return peripheral.name === 'mpy-pill-popper' 
         })     
         if(pVal.length > 0){
           setP(pVal[0])

@@ -1,117 +1,56 @@
-# PiCockpit.com
-
+import aioble
+import asyncio
 import bluetooth
-import random
+from aioble import DeviceDisconnectedError
 import struct
-import time
-from machine import Pin
-from ble_advertising import advertising_payload
-from rotation import dispense
 
-from micropython import const
+_ADV_INTERVAL_US = const(250000)
 
-_IRQ_CENTRAL_CONNECT = const(1)
-_IRQ_CENTRAL_DISCONNECT = const(2)
-_IRQ_GATTS_WRITE = const(3)
-
-_FLAG_READ = const(0x0002)
-_FLAG_WRITE_NO_RESPONSE = const(0x0004)
-_FLAG_WRITE = const(0x0008)
-_FLAG_NOTIFY = const(0x0010) 
-
-_UART_UUID = bluetooth.UUID("6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
-_UART_TX = (
-    bluetooth.UUID("6E400003-B5A3-F393-E0A9-E50E24DCCA9E"),
-    _FLAG_READ | _FLAG_NOTIFY,
-)
-_UART_RX = (
-    bluetooth.UUID("6E400002-B5A3-F393-E0A9-E50E24DCCA9E"),
-    _FLAG_WRITE | _FLAG_WRITE_NO_RESPONSE,
-)
-_UART_SERVICE = (
-    _UART_UUID,
-    (_UART_TX, _UART_RX),
-)
 DISPENSE_UUID = bluetooth.UUID("6fc3d9ab-3aef-4012-9456-15b0861e1139")
-DISPENSE_CHAR = (bluetooth.UUID("10e6cc59-b033-48e8-bcf4-70390d05be0e"), _FLAG_WRITE | _FLAG_WRITE_NO_RESPONSE,)
-DISPENSE_SERVICE = (DISPENSE_UUID, (DISPENSE_CHAR,),)
-SERVICES = (DISPENSE_SERVICE, _UART_SERVICE)
+DISPENSE_CHAR = bluetooth.UUID("10e6cc59-b033-48e8-bcf4-70390d05be0e")
 
-class BLESimplePeripheral:
-    def __init__(self, ble, name="pillpopper"):
-        self._ble = ble
-        self._ble.active(True)
-        self._ble.irq(self._irq)
-        (self._handle_dispense, (self._handle_tx, self._handle_rx),) = self._ble.gatts_register_services(SERVICES)
-        self._connections = set()
-        self._write_callback = None
-        self._payload = advertising_payload(name=name, services=[_UART_UUID])
-        self._advertise()
+dispense_service = aioble.Service(DISPENSE_UUID)
+dispense_char = aioble.Characteristic(dispense_service, DISPENSE_CHAR, write=True,read=True, notify=True, capture=True)
 
-    def _irq(self, event, data):
-        if event == _IRQ_CENTRAL_CONNECT:
-            conn_handle, _, _ = data
-            print("New connection", conn_handle)
-            self._connections.add(conn_handle)
-        elif event == _IRQ_CENTRAL_DISCONNECT:
-            conn_handle, _, _ = data
-            print("Disconnected", conn_handle)
-            self._connections.remove(conn_handle)
-            self._advertise()
-        elif event == _IRQ_GATTS_WRITE:
-            conn_handle, value_handle = data
-            value = self._ble.gatts_read(value_handle)
-            print(value)
-            slot_number, dispense_amount = struct.unpack('<ii', value)
-
-            # Create a DispenseObject
-            dispense_object = {
-                'slotNumber': slot_number,
-                'dispenseAmount': dispense_amount
-            }
-            dispense(slot_number, dispense_amount)
-
-            # Now you can use dispense_object as needed
-            print("Received DispenseObject:", dispense_object)
-            if value_handle == self._handle_rx and self._write_callback:
-                self._write_callback(value)
+aioble.register_services(dispense_service)
 
 
-    def send(self, data):
-        for conn_handle in self._connections:
-            self._ble.gatts_notify(conn_handle, self._handle_tx, data)
-
-    def is_connected(self):
-        return len(self._connections) > 0
-
-    def _advertise(self, interval_us=500000):
-        print("Starting advertising")
-        self._ble.gap_advertise(interval_us, adv_data=self._payload)
-
-    def on_write(self, callback):
-        self._write_callback = callback
-        
-
-
-def start_advertising():
-    led_onboard = Pin("LED", Pin.OUT)
-    ble = bluetooth.BLE()
-    p = BLESimplePeripheral(ble)
-    mac_address_bytes = ble.config('mac')[1]
-    mac_address_string = ':'.join(['{:02x}'.format(byte) for byte in mac_address_bytes])
-    print(mac_address_string)
-
-    def on_rx(v):
-        print("RX", v)
-
-    p.on_write(on_rx)
-
-    i = 0
+async def handle_data(data):
+    try:
+        # Parse JSON data
+        print("data is of type: ", type(data))
+        print("struct: ", struct.unpack('<li', data))
+        slot_number, dispense_amount = struct.unpack('<ii', data)
+        # Perform the dispense task here using dispense_data
+        print("Dispensing from slot:", slot_number, "Amount:", dispense_amount)
+        # call dispense function
+        # Example: call a function to dispense the pill based on dispense_data
+    except Exception as e:
+        print("Error receiving data: ", e)
+    
+async def peripheral():
     while True:
-        if p.is_connected():
-            led_onboard.on()
+        print("Starting advertising")
+        async with await aioble.advertise(
+            _ADV_INTERVAL_US,
+            name="mpy-pill-popper",
+            services=[DISPENSE_UUID],
+        ) as connection:
+            print("Connection from", connection.device)
+            while True:
+                try:
+                    #print("waiting for data")
+                    (c, data) = await dispense_char.written()
+                    if data:
+                        print("received data", data)
+                        await handle_data(data)
+                except DeviceDisconnectedError:
+                    print("Disconnected")
+                    
+                
 
-        time.sleep_ms(100)
+async def main():
+    dispense_task = asyncio.create_task(peripheral())
+    await asyncio.gather(dispense_task)
 
-
-start_advertising()
+asyncio.run(main())

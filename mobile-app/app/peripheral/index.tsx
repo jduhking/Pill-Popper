@@ -21,7 +21,7 @@ const PeripheralScreen = () => {
     const { top } = useSafeAreaInsets()
     const peripherals = useAppStore((state) => state.peripherals);
     const p =  Array.from(peripherals.values()).filter((peripheral) => {
-        return peripheral.name === 'mpy-uart'
+        return peripheral.name === 'mpy-pill-popper'
       })
     const { togglePeripheralConnection } = useBleManager();
     const router = useRouter();
@@ -56,7 +56,7 @@ const PeripheralScreen = () => {
                 <Separator separation={10} />
                 {
                     // Array.from(peripherals.values()).filter((peripheral) => {
-                    //     return peripheral.name === 'mpy-uart'
+                    //     return peripheral.name === 'mpy-pill-popper'
                     // }).map((peripheral) => {
                     //     return (
                     //         <View style={{ borderWidth: 1, borderRadius: 200, width: 15, height: 15}}>
