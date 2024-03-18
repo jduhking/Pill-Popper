@@ -1,15 +1,25 @@
 import { StyleSheet, View, Text, FlatList } from 'react-native';
 import { useState } from 'react';
-import { screenHeight, screenWidth } from '@/utils/dimensions';
-import Separator from '@/components/separator';
-import ActionButton from '@/components/buttons/action-button';
+import { screenHeight, screenWidth } from '../../utils/dimensions';
+import Separator from '../../components/separator';
+import ActionButton from '../../components/buttons/action-button';
 import { useRouter } from 'expo-router';
-
-
+import { useAppStore } from '../../state/store';
+import { DispenseObject } from '../../models/dispense-service';
+import BleManager, {
+  BleDisconnectPeripheralEvent,
+  BleManagerDidUpdateValueForCharacteristicEvent,
+  BleScanCallbackType,
+  BleScanMatchMode,
+  BleScanMode,
+  Peripheral,
+} from 'react-native-ble-manager';
+import { Buffer } from 'buffer'
 export default function TabOneScreen() {
 
   const router = useRouter();
   const today: Date = new Date();
+  const connectedDispenser = useAppStore((state) => state.connectedDispenser);
   type PillInfo = {
     id: string; // string representing the id of the pill
     name: string; // name of the pill
@@ -25,6 +35,48 @@ export default function TabOneScreen() {
   };
   // Format the date using Intl.DateTimeFormat
   const formattedDate = new Intl.DateTimeFormat('en-US', options).format(today);
+
+  const handleDispense = async (dispenseObject: DispenseObject) => {
+    console.log(connectedDispenser)
+    if(!connectedDispenser){
+      console.log('No dispenser connected!')
+      return;
+    }
+    const DISPENSE_SERVICE_UUID: string = '6fc3d9ab-3aef-4012-9456-15b0861e1139'
+    const DISPENSE_CHARACTERISTIC_UUID: string = '10e6cc59-b033-48e8-bcf4-70390d05be0e'
+    
+
+    console.log('Dispense!')
+    // Send data
+    const data = 'Dispense that jawn!'
+    
+      // Serialize the dispenseObject into a byte array
+    const buffer = Buffer.alloc(8); // Assuming slotNumber and dispenseAmount are both 4-byte integers
+    buffer.writeInt32LE(dispenseObject.slotNumber, 0);
+    buffer.writeInt32LE(dispenseObject.dispenseAmount, 4);
+
+    const regArray: number[] = Array.from(buffer);
+    
+     BleManager.write(
+       connectedDispenser.id,
+       DISPENSE_SERVICE_UUID,
+       DISPENSE_CHARACTERISTIC_UUID,
+       regArray
+     )
+       .then(() => {
+         // Data sent successfully
+         console.log('Data sent successfully')
+       })
+       .catch((error) => {
+         // Handle write error
+         console.log('error sending data')
+         console.error(error)
+       });
+
+       console.log('done')
+       
+  }
+
 
   // Split the formatted date into an array of strings
   const dateParts = formattedDate.split(' ');
@@ -74,7 +126,7 @@ export default function TabOneScreen() {
           />
         }
       </View>
-      <Separator  separation={30}/>
+      <Separator separation={30}/>
       <View
       style={{ paddingHorizontal: '25%'}}>
         <ActionButton
@@ -86,6 +138,13 @@ export default function TabOneScreen() {
         onPress={() => router.push('/calendar')}>
           View Schedule
       </ActionButton>
+        <ActionButton
+        onPress={() => handleDispense({
+          slotNumber: 5,
+          dispenseAmount: 2
+        })}>
+          Dispense
+        </ActionButton>
       </View>
       
       

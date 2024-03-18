@@ -6,14 +6,13 @@ import { StatusBar } from 'expo-status-bar'
 const AuthLayout = () => {
   return (
   <>
-  <StatusBar style="dark" />
-  <Stack 
-  initialRouteName='test'
-  screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="test" />
-    <Stack.Screen name="bluetooth-pairing"
-    />
-  </Stack>
+    <StatusBar style="dark" />
+    <Stack screenOptions={{ headerShown: false}}>
+      <Stack.Screen 
+        name="peripheral"
+      />
+    </Stack>
+
   </>
     
   )
