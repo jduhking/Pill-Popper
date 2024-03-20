@@ -5,14 +5,20 @@ import Colors from '../../constants/Colors'
 
 interface FormInputProps {
     placeholder?: string;
+    value: string;
+    setValue: (value: string) => void;
 }
-const FormInput: React.FC<FormInputProps> = ({ placeholder }) => {
+const FormInput: React.FC<FormInputProps> = ({ placeholder, value, setValue}) => {
+
   return (
     <TextInput 
-    style={{ height: screenHeight * 0.06, backgroundColor: Colors.brand.form,
+    style={{ maxHeight: screenHeight * 0.06, backgroundColor: Colors.brand.form, flex: 1,
     borderRadius: 15, paddingLeft: '5%', fontWeight: 'bold', fontSize: 18, marginBottom: '5%' }}
     placeholder={placeholder}
-    placeholderTextColor={Colors.brand.placeholder}/>
+    placeholderTextColor={Colors.brand.placeholder}
+    value={value}
+    onChangeText={setValue}
+    />
   )
 }
 

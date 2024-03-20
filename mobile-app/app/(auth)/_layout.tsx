@@ -7,12 +7,7 @@ const AuthLayout = () => {
   return (
   <>
     <StatusBar style="dark" />
-    <Stack screenOptions={{ headerShown: false}}>
-      <Stack.Screen 
-        name="peripheral"
-      />
-    </Stack>
-
+    <Stack screenOptions={{ headerShown: false}} />
   </>
     
   )
