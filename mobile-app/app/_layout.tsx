@@ -65,14 +65,8 @@ function RootLayoutNav() {
   const BleManagerModule = NativeModules.BleManager;
   const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
   const router = useRouter()
-  const { getRecord } = useRecord()
-  useEffect(() => {
-    if(connectedDispenser){
-      // pull the records from securestorage
-    } else {
-      
-    }
-  }, [connectedDispenser])
+
+  const { getRecord, initRecord} = useRecord()
 
   const handleAndroidPermissions = () => {
     if (Platform.OS === 'android' && Platform.Version >= 31) {
@@ -194,11 +188,38 @@ const retrieveConnected = async () => {
   }
 };
 
+const getUserData = async (dispenserId: string) => {
+  // try to get the record
+  console.log('attempting to get the record for the dispenser: ', dispenserId)
+  getRecord(dispenserId).then((record) => {
+    // set the state
+    console.log('record retrieved: ', record)
+    setRecord(record)
+  }).catch((e) => {
+    //if record doesn't exist, then initialize it
+    console.log('problem getting record: ', e)
+    initRecord(dispenserId).then((record) => {
+      // set the state
+      setRecord(record)
+    }).catch((e) => {
+      console.log('problem initializing the record: ', e)
+    })
+  }).finally(() => {
+    // finally go to the home page
+    router.replace('/(tabs)')
+  })
+}
+
 useEffect(() => {
-  if(!connectedDispenser){
+  if(connectedDispenser){
+    // get the user details
+    getUserData(connectedDispenser.id)
+  } else{
     router.replace('/')
   }
 }, [connectedDispenser])
+
+
   useEffect(() => {
     try {
       BleManager.start({showAlert: false})

@@ -29,19 +29,20 @@ import { useAppStore } from '../../state/store'
 import { screenHeight, screenWidth } from '../../utils/dimensions'
 import useBleManager from '../../utils/useBleManager';
 import { FlatList } from 'react-native-gesture-handler'
+import useRecord from '../../utils/useRecord'
 
 const BluetoothPairingScreen = () => {
     const { top } = useSafeAreaInsets();
     const isScanning = useAppStore((state) => state.isScanning);
     const setIsScanning = useAppStore((state) => state.setIsScanning);
     const setPeripherals = useAppStore((state) => state.setPeripherals);
+    const setRecord = useAppStore((state) => state.setRecord)
     const peripherals = useAppStore((state) => state.peripherals);
     const connectedDispenser = useAppStore((state) => state.connectedDispenser);
     const setConnectedDispenser = useAppStore((state) => state.setConnectedDispenser);
     const router = useRouter();
     const [p, setP] = useState<Peripheral>()  
     const { startScan } = useBleManager();
-
     const handleStopScan = async () => {
       try { 
         console.log('attempting to stop the scan')
@@ -53,16 +54,11 @@ const BluetoothPairingScreen = () => {
     }
 
     useEffect(() => {
-      if(connectedDispenser){
-        router.push('/(tabs)')
-      }
-    }, [])
-
-    useEffect(() => {
       console.log('peripherals changed')
       if(!p){
         const pVal =  Array.from(peripherals.values()).filter((peripheral) => {
-          return peripheral.name === 'mpy-pill-popper' 
+          // return peripheral.name === 'mpy-pill-popper' 
+          return peripheral.name === 'LE-Jduhkings headphones'
         })     
         if(pVal.length > 0){
           setP(pVal[0])

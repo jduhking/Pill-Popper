@@ -21,10 +21,12 @@ const PeripheralScreen = () => {
     const { top } = useSafeAreaInsets()
     const peripherals = useAppStore((state) => state.peripherals);
     const p =  Array.from(peripherals.values()).filter((peripheral) => {
-        return peripheral.name === 'mpy-pill-popper'
+        // return peripheral.name === 'mpy-pill-popper'
+        return peripheral.name === 'LE-Jduhkings headphones'
       })
     const { togglePeripheralConnection } = useBleManager();
     const router = useRouter();
+    const setConnectedDispenser = useAppStore((state) => state.setConnectedDispenser)
     const [connecting, setConnecting] = useState<boolean>();
     const renderItem = ( {item, index} : { item : Peripheral, index: number}) => {
         return (
@@ -40,10 +42,10 @@ const PeripheralScreen = () => {
                 loading={connecting}
                 onPress={async () => {
                     try {
-                        setConnecting(true)
-                        await togglePeripheralConnection(item)
-                        setConnecting(false)
-                        router.replace('/(tabs)') // go to the rest of the app
+                        // setConnecting(true)
+                        // await togglePeripheralConnection(item)
+                        // setConnecting(false)
+                        setConnectedDispenser(item)
                     } catch(err){
                         setConnecting(false)
                         console.error(err);
