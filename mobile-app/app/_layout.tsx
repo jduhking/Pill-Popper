@@ -16,6 +16,7 @@ import { NativeModules,
   import { useRouter } from 'expo-router';
 import { useAppStore } from '../state/store';
 import useBleManager from '../utils/useBleManager';
+import useRecord from '../utils/useRecord';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -55,6 +56,7 @@ declare module 'react-native-ble-manager' {
 function RootLayoutNav() {
   const isScanning = useAppStore((state) => state.isScanning);
   const setIsScanning = useAppStore((state) => state.setIsScanning);
+  const setRecord = useAppStore((state) => state.setRecord)
   const { startScan, stopScan } = useBleManager();
   const peripherals = useAppStore((state) => state.peripherals);
   const setPeripherals = useAppStore((state) => state.setPeripherals);
@@ -63,6 +65,14 @@ function RootLayoutNav() {
   const BleManagerModule = NativeModules.BleManager;
   const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
   const router = useRouter()
+  const { getRecord } = useRecord()
+  useEffect(() => {
+    if(connectedDispenser){
+      // pull the records from securestorage
+    } else {
+      
+    }
+  }, [connectedDispenser])
 
   const handleAndroidPermissions = () => {
     if (Platform.OS === 'android' && Platform.Version >= 31) {
